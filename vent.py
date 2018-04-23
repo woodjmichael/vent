@@ -15,25 +15,29 @@ def represents_int(s):
     except ValueError:
         return False
 
-def pull_machines():
-    uri = baseUri + 'machines/'
+def pull(whatToPull): #'machines' or 'gateways'
+    uri = baseUri + whatToPull +'/'
     r = requests.get(uri, headers=headers)
     
     #print(r.status_code)
     #print(r.headers['content-type'])  
     
     j = r.json() 
-
-    file = open('machines.csv', 'w')
     
-    for row in j:
-        sn = row['serialNumber']
-        type = row['coordinatorType']
-        file.write(sn + ',' + type + '\n')
-                
+    print(json.dumps(j, indent=4, sort_keys=True))
+
+    filename = whatToPull + '.csv'
+    file = open(filename, 'w')
+    
+    if whatToPull == 'machines':
+        for row in j:
+            sn = row['serialNumber']
+            type = row['coordinatorType']
+            file.write(sn + ',' + type + '\n')
+                    
     file.close() 
     
-    print('Pull machines complete')
+    print('Pull ' + whatToPull + ' complete')
 
 def analyze_machines(date):
     try:
@@ -76,9 +80,7 @@ def analyze_log(sn, date, type):
         #print(r.status_code)
         #print(r.headers['content-type'])  
         
-        j = r.json()
-        
-        print(json.dumps(j, indent=4, sort_keys=TRUE))
+        j = r.json()               
 
         file = open('log.csv', 'w')
         
@@ -134,7 +136,9 @@ output.close
 
 if len(sys.argv) > 1:
     if sys.argv[1] == '-pm':
-        pull_machines()
+        pull('machines')
+    elif sys.argv[1] == '-pg':
+        pull('gateways')
 
     elif sys.argv[1] == '-am':
         analyze_machines(str(sys.argv[2])) # date
