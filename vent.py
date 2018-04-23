@@ -17,14 +17,13 @@ def represents_int(s):
 
 def pull(whatToPull): #'machines' or 'gateways'
     uri = baseUri + whatToPull +'/'
-    r = requests.get(uri, headers=headers)
-    
-    #print(r.status_code)
-    #print(r.headers['content-type'])  
+    r = requests.get(uri, headers=headers)       
     
     j = r.json() 
     
-    print(json.dumps(j, indent=4, sort_keys=True))
+    #print(r.status_code)
+    #print(r.headers['content-type'])  
+    #print(json.dumps(j, indent=4, sort_keys=True))
 
     filename = whatToPull + '.csv'
     file = open(filename, 'w')
@@ -39,36 +38,14 @@ def pull(whatToPull): #'machines' or 'gateways'
     
     print('Pull ' + whatToPull + ' complete')
 
-def analyze_all_machines(date):
-    try:
-        uri = baseUri + 'machines/'
-        r = requests.get(uri, headers=headers)
-        
-        #print(r.status_code)
-        #print(r.headers['content-type'])  
-        
-        j = r.json() 
+def analyze_all_machines(date):   
+    pull('machines')
 
-        file = open('machines.csv', 'w')
-        
-        for row in j:
-            sn = row['serialNumber']
-            type = row['coordinatorType']
-            file.write(sn + ',' + type + '\n')
-            analyze_log(row['serialNumber'], date, type)
-            print(date + ' ' + sn + ' complete')
-            
-        file.close()        
-
-    except requests.HTTPError as e:
-      print("HTTP Error: {}".format(e))
-    except requests.ConnectTimeout as e:
-      print("The request timed out while trying to connect to the remote server: {}".format(e))
-    except requests.ConnectionError as e:
-      print("Connection Error: {}".format(e))
-    except requests.RequestException as e:
-      print("Unhandled exception: {}".format(e))
+    machine_csv = csv.reader(open('machines.csv'), delimiter=',')
     
+    for row in machine_csv:
+        analyze_one_machine(row[0], date, row[1])   #pass: sn, date, type
+        print(date + ' ' + row[0] + ' complete')    #pass: date, sn
 
 
 def analyze_one_machine(sn, date, type):
