@@ -39,7 +39,7 @@ def pull(whatToPull): #'machines' or 'gateways'
     
     print('Pull ' + whatToPull + ' complete')
 
-def analyze_machines(date):
+def analyze_all_machines(date):
     try:
         uri = baseUri + 'machines/'
         r = requests.get(uri, headers=headers)
@@ -71,7 +71,7 @@ def analyze_machines(date):
     
 
 
-def analyze_log(sn, date, type):
+def analyze_one_machine(sn, date, type):
     try:
         uri = baseUri + 'machines/' + sn + '/logs'
         payload['day'] = date
@@ -81,7 +81,7 @@ def analyze_log(sn, date, type):
         #print(r.headers['content-type'])  
         
         j = r.json()               
-
+        
         file = open('log.csv', 'w')
         
         for row in j:
@@ -91,7 +91,7 @@ def analyze_log(sn, date, type):
         file.close()
         
         log_csv = csv.reader(open('log.csv'), delimiter=',')
-        
+                
         output = open('output.csv', 'a')
         output.write('sn,stc-time,windP\n')
         
@@ -127,26 +127,24 @@ def analyze_log(sn, date, type):
     except requests.RequestException as e:
       print("Unhandled exception: {}".format(e))
 
-      
-      
-      
 output = open('output.csv', 'w')      
 output.write('')
-output.close
-
+output.close      
+      
+      
 if len(sys.argv) > 1:
     if sys.argv[1] == '-pm':
         pull('machines')
     elif sys.argv[1] == '-pg':
         pull('gateways')
 
-    elif sys.argv[1] == '-am':
-        analyze_machines(str(sys.argv[2])) # date
+    elif sys.argv[1] == '-aam':
+        analyze_all_machines(str(sys.argv[2])) # date
     
-    elif sys.argv[1] == '-al':
-        analyze_log(str(sys.argv[2]), str(sys.argv[3]), str(sys.argv[4])) # sn, date, type
+    elif sys.argv[1] == '-aom':
+        analyze_one_machine(str(sys.argv[2]), str(sys.argv[3]), str(sys.argv[4])) # sn, date, type
 else:    
-    analyze_machines('2018-04-04')
-    analyze_machines('2018-04-05')
+    analyze_all_machines('2018-04-04')
+    analyze_all_machines('2018-04-05')
   
 print("Hey it worked! (stop celebrating and get to work)")
