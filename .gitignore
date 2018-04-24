@@ -1,5 +1,4 @@
 /etc
 /dat
-log.csv
-machines.csv
-output.csv
+*.csv
+*.xlsx
