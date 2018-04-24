@@ -2,6 +2,7 @@ import sys
 import requests
 import csv
 import json
+import os
 
 payload = {'day': '2018-01-01'}
 baseUri = 'https://solaflect-uplink-east.azurewebsites.net/api/v2/'
@@ -25,35 +26,40 @@ def pull(whatToPull): #'machines' or 'gateways'
     #print(r.headers['content-type'])  
     #print(json.dumps(j, indent=4, sort_keys=True))
 
-    filename = whatToPull + '.csv'
-    file = open(filename, 'w')
+    file = open('pull.csv', 'w')
     
     if whatToPull == 'machines':
         for row in j:
             sn = row['serialNumber']
             type = row['coordinatorType']
             file.write(sn + ',' + type + '\n')
+    else :
+        for row in j:
+            netID = row['netid']
+            name = row['friendlyName']            
+            file.write(str(netID) + ',' + str(name) + '\n')            
                     
     file.close() 
     
     print('Pull ' + whatToPull + ' complete')
 
 def analyze_all_machines(date):   
-    pull('machines')
+    #pull('machines')
 
-    machine_csv = csv.reader(open('machines.csv'), delimiter=',')
+    machine_csv = csv.reader(open('machine_list.csv'), delimiter=',')
     
     for row in machine_csv:
-        if represents_int(row[0][0]) :
-            analyze_one_machine(row[0], date, row[1])       #pass: sn, date, type
-            print(date + ' ' + row[0] + ' complete')        #pass: date, sn
+        if represents_int(row[0][0]) and represents_int(row[2]) :
+            analyze_one_machine(row[0], date, row[1], row[2])       #pass: sn, date, type, stowPos
+            print(date + ' ' + row[0] + ' complete')                #pass: date, sn
         else :
             print('ERROR: ' + date + ' ' + row[0])
 
 
-def analyze_one_machine(sn, date, type):
+def analyze_one_machine(sn, date, type, stowPosStr):
     try:
         gen = int(sn[0])
+        stowPos = int(stowPosStr)
         
         uri = baseUri + 'machines/' + sn + '/logs'
         payload['day'] = date
@@ -76,26 +82,26 @@ def analyze_one_machine(sn, date, type):
                 
         output = open('output.csv', 'a')        
 
-        stow = True        
+        stow = True   
                 
         if type == 'Erasmo' or gen != 6:
             for row in log_csv:
                 if ((len(row) > 30) and represents_int(row[6])) :                    
                     elpos = int(row[6])
-                    if ((elpos >= 64000) and (not stow)) : #(row[30] == '2') and (not stow)) :
-                        stow = True
+                    if ((elpos >= (stowPos-1000)) and (not stow)) : 
+                        stow = True                        
                         output.write(sn + ',' + row[3] + ',' + row[6] + ',' + row[21] + ',' + row[30] + '\n')
-                    if ((elpos < 64000) and stow) :
+                    if ((elpos < (stowPos-1000)) and stow) :
                         stow = False
         
         elif type == 'SecondGen' and gen == 6:
             for row in log_csv:
                 if ((len(row) > 23) and represents_int(row[3])) :
                     elpos = int(row[3])                    
-                    if ((elpos >= 3800) and (not stow)) :
+                    if ((elpos >= (stowPos-100)) and (not stow)) :
                         stow = True
                         output.write(sn + ',' + row[1][7:15] + ',' + row[3] + ',' + row[23] + ',' + row[12] + '\n')
-                    if ((elpos < 3800) and stow) :
+                    if ((elpos < (stowPos-100)) and stow) :
                         stow = False                                                
         output.close()
                         
@@ -110,22 +116,30 @@ def analyze_one_machine(sn, date, type):
     except requests.RequestException as e:
       print("Unhandled exception: {}".format(e))
 
-output = open('output.csv', 'w')      
-output.write('sn,stc-time,elpos,windP,state\n')
-output.close      
+      
+      
+      
+#
+# Main execution      
+#     
+try:
+    os.remove('output.csv')
+except OSError:
+    pass
       
       
 if len(sys.argv) > 1:
     if sys.argv[1] == '-pm':
         pull('machines')
+        
     elif sys.argv[1] == '-pg':
         pull('gateways')
-
+        
     elif sys.argv[1] == '-aam':
         analyze_all_machines(str(sys.argv[2])) # date
     
     elif sys.argv[1] == '-aom':
-        analyze_one_machine(str(sys.argv[2]), str(sys.argv[3]), str(sys.argv[4])) # sn, date, type
+        analyze_one_machine(str(sys.argv[2]), str(sys.argv[3]), str(sys.argv[4]), str(sys.argv[5])) # sn, date, type, stowPos
 else:    
     analyze_all_machines('2018-04-04')
     analyze_all_machines('2018-04-05')
