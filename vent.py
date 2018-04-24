@@ -1,7 +1,9 @@
 #
+# vent.py
+# python 3
+#
 # Michael Wood
 # 2018.4.24
-# python 3
 #
 
 import sys
@@ -12,7 +14,6 @@ import os
 
 payload = {'day': '2018-01-01'}
 baseUri = 'https://solaflect-uplink-east.azurewebsites.net/api/v2/'
-
 headers = {'Authorization' : 'Bearer 4615dca0-ba2e-45ff-afc9-e8e2b3cf401b'}
 
 def represents_int(s):
@@ -50,8 +51,6 @@ def pull(whatToPull): #'machines' or 'gateways'
     print('Pull ' + whatToPull + ' complete')
 
 def analyze_all_machines(date):   
-    #pull('machines')
-
     machine_csv = csv.reader(open('machine_list.csv'), delimiter=',')
     
     for row in machine_csv:
@@ -132,8 +131,7 @@ try:
     os.remove('output.csv')
 except OSError:
     pass
-      
-      
+            
 if len(sys.argv) > 1:
     if sys.argv[1] == '-pm':
         pull('machines')
@@ -142,10 +140,11 @@ if len(sys.argv) > 1:
         pull('gateways')
         
     elif sys.argv[1] == '-aam':
-        analyze_all_machines(str(sys.argv[2])) # date
+        analyze_all_machines(str(sys.argv[2])) #pass: date
     
     elif sys.argv[1] == '-aom':
-        analyze_one_machine(str(sys.argv[2]), str(sys.argv[3]), str(sys.argv[4]), str(sys.argv[5])) # sn, date, type, stowPos
+        #pass: sn, date, type, stowPos
+        analyze_one_machine(str(sys.argv[2]), str(sys.argv[3]), str(sys.argv[4]), str(sys.argv[5]))
 else:    
     analyze_all_machines('2018-04-04')
     analyze_all_machines('2018-04-05')
