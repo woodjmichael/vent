@@ -44,12 +44,17 @@ def analyze_all_machines(date):
     machine_csv = csv.reader(open('machines.csv'), delimiter=',')
     
     for row in machine_csv:
-        analyze_one_machine(row[0], date, row[1])   #pass: sn, date, type
-        print(date + ' ' + row[0] + ' complete')    #pass: date, sn
+        if represents_int(row[0][0]) :
+            analyze_one_machine(row[0], date, row[1])       #pass: sn, date, type
+            print(date + ' ' + row[0] + ' complete')        #pass: date, sn
+        else :
+            print('ERROR: ' + date + ' ' + row[0])
 
 
 def analyze_one_machine(sn, date, type):
     try:
+        gen = int(sn[0])
+        
         uri = baseUri + 'machines/' + sn + '/logs'
         payload['day'] = date
         r = requests.get(uri, headers=headers, params=payload)
@@ -69,28 +74,29 @@ def analyze_one_machine(sn, date, type):
         
         log_csv = csv.reader(open('log.csv'), delimiter=',')
                 
-        output = open('output.csv', 'a')
-        output.write('sn,stc-time,windP\n')
-        
-        prevVal = 2
-        currentVal = 0
+        output = open('output.csv', 'a')        
+
+        stow = True        
                 
-        if type == 'Erasmo':
+        if type == 'Erasmo' or gen != 6:
             for row in log_csv:
-                if (len(row) >= 30) and represents_int(row[30]):
-                    currentVal = int(row[30])              
-                    if currentVal == 2 and prevVal != 2:
-                        output.write(sn + ',' + row[1] + ',' + row[21] + '\n')
-                    prevVal = currentVal
+                if ((len(row) > 30) and represents_int(row[6])) :                    
+                    elpos = int(row[6])
+                    if ((elpos >= 64000) and (not stow)) : #(row[30] == '2') and (not stow)) :
+                        stow = True
+                        output.write(sn + ',' + row[3] + ',' + row[6] + ',' + row[21] + ',' + row[30] + '\n')
+                    if ((elpos < 64000) and stow) :
+                        stow = False
         
-        if type == 'SecondGen':
+        elif type == 'SecondGen' and gen == 6:
             for row in log_csv:
-                if (len(row) >= 12) and represents_int(row[12]):
-                    currentVal = int(row[12])
-                    if currentVal == 2 and prevVal != 2:
-                        output.write(sn + ',' + row[1][7:15] + ',' + row[23] + '\n')
-                    prevVal = currentVal
-                        
+                if ((len(row) > 23) and represents_int(row[3])) :
+                    elpos = int(row[3])                    
+                    if ((elpos >= 3800) and (not stow)) :
+                        stow = True
+                        output.write(sn + ',' + row[1][7:15] + ',' + row[3] + ',' + row[23] + ',' + row[12] + '\n')
+                    if ((elpos < 3800) and stow) :
+                        stow = False                                                
         output.close()
                         
              
@@ -105,7 +111,7 @@ def analyze_one_machine(sn, date, type):
       print("Unhandled exception: {}".format(e))
 
 output = open('output.csv', 'w')      
-output.write('')
+output.write('sn,stc-time,elpos,windP,state\n')
 output.close      
       
       
