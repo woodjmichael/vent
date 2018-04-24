@@ -1,4 +1,5 @@
 /etc
 /dat
-*.csv
 *.xlsx
+*.csv
+!machine_list.csv
