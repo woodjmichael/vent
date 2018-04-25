@@ -17,6 +17,10 @@ Pull (list of all) machines into pull.csv, easy hard-coded option to print JSON
 ##-pg
 Pull (list of all) gateays into pull.csv, easy hard-coded option to print JSON
 
+##-pl <remaining uri for api call>
+Pull log, have to manually enter everything after baseUri with Arg1
+- Arg1 = remaining uri for api call (e.g. /machines/64001/logs?date=2018-04-01)
+
 ##-aam <yyyy-mm-dd>
 Analyze all machines in machine_list.csv for wind events, output to output.csv
 - Arg1 = date

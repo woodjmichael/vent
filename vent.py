@@ -23,7 +23,7 @@ def represents_int(s):
     except ValueError:
         return False
 
-def pull(whatToPull): #'machines' or 'gateways'
+def pull(whatToPull): #'machines', 'gateways', or remaining uri for api call
     uri = baseUri + whatToPull +'/'
     r = requests.get(uri, headers=headers)       
     
@@ -40,11 +40,14 @@ def pull(whatToPull): #'machines' or 'gateways'
             sn = row['serialNumber']
             type = row['coordinatorType']
             file.write(sn + ',' + type + '\n')
-    else :
+    elif whatToPull == 'gateways' :
         for row in j:
             netID = row['netid']
             name = row['friendlyName']            
-            file.write(str(netID) + ',' + str(name) + '\n')            
+            file.write(str(netID) + ',' + str(name) + '\n') 
+    else :
+        for row in j:
+            file.write(row['CsvLine'] + '\n')                       
                     
     file.close() 
     
@@ -78,8 +81,7 @@ def analyze_one_machine(sn, date, type, stowPosStr):
         file = open('log.csv', 'w')
         
         for row in j:
-            file.write(row['CsvLine'])
-            file.write('\n')
+            file.write(row['CsvLine'] + '\n')
             
         file.close()
         
@@ -138,6 +140,9 @@ if len(sys.argv) > 1:
         
     elif sys.argv[1] == '-pg':
         pull('gateways')
+    
+    elif sys.argv[1] == '-pl' :
+        pull(sys.argv[2])
         
     elif sys.argv[1] == '-aam':
         analyze_all_machines(str(sys.argv[2])) #pass: date
