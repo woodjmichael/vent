@@ -39,7 +39,9 @@ def pull(whatToPull): #'machines', 'gateways', or remaining uri for api call
         for row in j:
             sn = row['serialNumber']
             type = row['coordinatorType']
-            file.write(sn + ',' + type + '\n')
+            #name = row['friendlyName']
+            url = row['url']
+            file.write(sn + ',' + type + ',' + url + '\n')
     elif whatToPull == 'gateways' :
         for row in j:
             netID = row['netid']
@@ -131,6 +133,7 @@ def analyze_one_machine(sn, date, type, stowPosStr):
 #     
 try:
     os.remove('output.csv')
+    os.remove('pull.csv')
 except OSError:
     pass
             
